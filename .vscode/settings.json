@@ -20,6 +20,7 @@
         "ExecuteUFunction",
         "FString",
         "StopLoopAsync",
-        "IterateGameDirectories"
+        "IterateGameDirectories",
+        "LoopClock"
     ]
 }

@@ -12,8 +12,8 @@ if file then
     file:close()
 end
 
-if timer_data.Seconds < 5 then
-    timer_data.Seconds = 5
+if timer_data.Seconds < 10 then
+    timer_data.Seconds = 10
 end
 
 return timer_data

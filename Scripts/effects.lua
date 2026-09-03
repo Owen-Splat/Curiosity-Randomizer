@@ -7,6 +7,8 @@ local SpawnedObj = nil
 
 local effects = {}
 
+effects.IsCurrentTemporary = false
+
 
 function effects.InitHooks()
     if not HookManager then
@@ -15,11 +17,16 @@ function effects.InitHooks()
 end
 
 
-function effects.Cleanup()
+function effects.ClearText()
     if SpawnedText and SpawnedText:IsValid() then
         SpawnedText:K2_DestroyActor()
     end
     SpawnedText = nil
+end
+
+
+function effects.Cleanup()
+    effects.ClearText()
 
     if SpawnedObj and SpawnedObj:IsValid() then
         SpawnedObj:K2_DestroyActor()
@@ -34,6 +41,7 @@ function effects.Cleanup()
             HookManager[key] = false
         end
     end
+    effects.IsCurrentTemporary = false
 end
 
 
@@ -47,8 +55,6 @@ function effects.ShowText(Character, RawText)
     SpawnedText = World:SpawnActor(ActorClass, SpawnLocation, SpawnRotation)
     SpawnedText['Action Text'] = FText(RawText)
     SpawnedText:Show()
-    ExecuteWithDelay(500, function()
-    end)
 end
 
 
@@ -113,13 +119,26 @@ function effects.LaunchRandomDirection(Character)
 end
 
 
--- TEMP EFFECTS
+function effects.InvertColors(Character)
+    local Cam = Character.Camera
+    if not Cam or not Cam:IsValid() then return end
+    Character.Camera.PostProcessSettings.bOverride_ColorSaturation = true
+    if Cam.PostProcessSettings.ColorSaturation.X == -1.0 then
+        effects.ShowText(Character, "Normal Colors")
+        Cam.PostProcessSettings.ColorSaturation = {X=1.0, Y=1.0, Z=1.0, W=1.0}
+    else
+        effects.ShowText(Character, "Inverted Colors")
+        Cam.PostProcessSettings.ColorSaturation = {X=-1.0, Y=-1.0, Z=-1.0, W=1.0}
+    end
+end
 
--- WIP, CURRENTLY BROKEN
+
+-- TEMP EFFECTS
 function effects.ToggleLowGravity(Character)
     if not HookManager then return end
     effects.ShowText(Character, "Low Gravity (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.LowGravity = true
+    effects.IsCurrentTemporary = true
 end
 
 
@@ -127,6 +146,15 @@ function effects.LockCamera(Character)
     if not HookManager then return end
     effects.ShowText(Character, "Locked camera (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.CameraLock = true
+    effects.IsCurrentTemporary = true
+end
+
+
+function effects.ReverseCamera(Character)
+    if not HookManager then return end
+    effects.ShowText(Character, "Inverted camera (" .. tostring(TimerData.Seconds) .. "s)")
+    HookManager.ReversedCamera = true
+    effects.IsCurrentTemporary = true
 end
 
 
@@ -134,6 +162,23 @@ function effects.ConstantJump(Character)
     if not HookManager then return end
     effects.ShowText(Character, "Forced jumps (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.ForcedJumps = true
+    effects.IsCurrentTemporary = true
+end
+
+
+function effects.UpsideDown(Character)
+    if not HookManager then return end
+    effects.ShowText(Character, "Upside-Down View (" .. tostring(TimerData.Seconds) .. "s)")
+    HookManager.UpsideDown = true
+    effects.IsCurrentTemporary = true
+end
+
+
+function effects.Freeze(Character)
+    if not HookManager then return end
+    effects.ShowText(Character, "Frozen (" .. tostring(TimerData.Seconds) .. "s)")
+    HookManager.Frozen = true
+    effects.IsCurrentTemporary = true
 end
 
 
@@ -145,11 +190,20 @@ function effects.GetValidTempEffects()
     if not HookManager.CameraLock then
         tempEffects[#tempEffects+1] = effects.LockCamera
     end
-    -- if not HookManager.LowGravity then
-    --     tempEffects[#tempEffects+1] = effects.ToggleLowGravity
-    -- end
+    if not HookManager.ReversedCamera then
+        tempEffects[#tempEffects+1] = effects.ReverseCamera
+    end
+    if not HookManager.LowGravity then
+        tempEffects[#tempEffects+1] = effects.ToggleLowGravity
+    end
     if not HookManager.ForcedJumps then
         tempEffects[#tempEffects+1] = effects.ConstantJump
+    end
+    if not HookManager.UpsideDown then
+        tempEffects[#tempEffects+1] = effects.UpsideDown
+    end
+    if not HookManager.Frozen then
+        tempEffects[#tempEffects+1] = effects.Freeze
     end
 
     return tempEffects
