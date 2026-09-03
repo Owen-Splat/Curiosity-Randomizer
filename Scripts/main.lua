@@ -15,7 +15,6 @@ local FunctionPool = {
     EffectManager.SpawnDrum,
     EffectManager.SpawnYarnBall,
     EffectManager.InvertColors,
-    EffectManager.ReverseCamera
 }
 
 -- Start our loop when the player has been created
