@@ -1,29 +1,30 @@
-local UEHelpers = require("UEHelpers")
-local EffectManager = require("effects")
+local TimerData = require("timer")
 
 print("[EffectRandomizer] Script initialized successfully!")
 
-local EffectTimer = nil
+local UEHelpers = require("UEHelpers")
+local EffectManager = require("effects")
+
+local EffectLoop = nil
 
 local FunctionPool = {
     EffectManager.ToggleDash,
     EffectManager.ToggleDoubleJump,
     EffectManager.SpawnDrum,
     EffectManager.SpawnYarnBall,
-    -- EffectManager.ToggleLowGravity, -- not finished
     EffectManager.LaunchRandomDirection,
 }
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, newPawn)
     RegisterHook("/Game/AnimX/_Common/CharBP_Base.CharBP_Base_C:ReceiveEndPlay", function()
-        if EffectTimer then
-            StopLoopAsync(EffectTimer)
-            EffectTimer = nil
+        if EffectLoop then
+            StopLoopAsync(EffectLoop)
+            EffectLoop = nil
         end
         EffectManager.Cleanup()
     end)
 
-    EffectTimer = LoopAsync(10000, function()
+    EffectLoop = LoopAsync(TimerData.Seconds * 1000, function()
         local PlayerController = UEHelpers.GetPlayerController()
         if not PlayerController or not PlayerController:IsValid() then
             return true
@@ -34,9 +35,19 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
         end
         EffectManager:InitHooks()
         EffectManager.Cleanup()
+        local tempEffs = EffectManager.GetValidTempEffects()
+        local validFuncs = {}
+        for i = 1, #FunctionPool do
+            validFuncs[#validFuncs+1] = FunctionPool[i]
+        end
+        if tempEffs then            
+            for i = 1, #tempEffs do
+                validFuncs[#validFuncs+1] = tempEffs[i]
+            end
+        end
         ExecuteWithDelay(500, function()
-            local randomIndex = math.random(1, #FunctionPool)
-            FunctionPool[randomIndex](Character)
+            local randomIndex = math.random(1, #validFuncs)
+            validFuncs[randomIndex](Character)
         end)
         return false
     end)

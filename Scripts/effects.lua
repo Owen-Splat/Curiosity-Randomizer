@@ -1,4 +1,5 @@
 local UEHelpers = require("UEHelpers")
+local TimerData = require("timer")
 local HookManager = nil
 
 local SpawnedText = nil
@@ -24,6 +25,15 @@ function effects.Cleanup()
         SpawnedObj:K2_DestroyActor()
     end
     SpawnedObj = nil
+
+    if not HookManager then return end
+
+    -- key any temp effect at the next cycle
+    for key, value in pairs(HookManager) do
+        if value == true then
+            HookManager[key] = false
+        end
+    end
 end
 
 
@@ -94,26 +104,55 @@ function effects.SpawnYarnBall(Character)
     end
 end
 
--- WIP, very broken currently
-function effects.ToggleLowGravity(Character)
-    if not HookManager then
-        return
-    end
-
-    if HookManager.LowGravity then
-        effects.ShowText(Character, "Low Gravity Disabled")
-    else
-        effects.ShowText(Character, "Low Gravity Enabled")
-    end
-    HookManager.LowGravity = not HookManager.LowGravity
-end
-
 
 function effects.LaunchRandomDirection(Character)
     local vel = {X = math.random(-500, 500), Y = math.random(-500, 500), Z = math.random(1000, 1500)}
     local off = {X = 0.0, Y = 0.0, Z = 0.0}
-    effects.ShowText(Character, "Get launched idiot")
+    effects.ShowText(Character, "You're going places!")
     Character:LaunchWithForce(vel, 5.0, off, true)
+end
+
+
+-- TEMP EFFECTS
+
+-- WIP, CURRENTLY BROKEN
+function effects.ToggleLowGravity(Character)
+    if not HookManager then return end
+    effects.ShowText(Character, "Low Gravity (" .. tostring(TimerData.Seconds) .. "s)")
+    HookManager.LowGravity = true
+end
+
+
+function effects.LockCamera(Character)
+    if not HookManager then return end
+    effects.ShowText(Character, "Locked camera (" .. tostring(TimerData.Seconds) .. "s)")
+    HookManager.CameraLock = true
+end
+
+
+function effects.ConstantJump(Character)
+    if not HookManager then return end
+    effects.ShowText(Character, "Forced jumps (" .. tostring(TimerData.Seconds) .. "s)")
+    HookManager.ForcedJumps = true
+end
+
+
+-- Returns each temp effect func if it is free
+function effects.GetValidTempEffects()
+    if not HookManager then return end
+
+    local tempEffects = {}
+    if not HookManager.CameraLock then
+        tempEffects[#tempEffects+1] = effects.LockCamera
+    end
+    -- if not HookManager.LowGravity then
+    --     tempEffects[#tempEffects+1] = effects.ToggleLowGravity
+    -- end
+    if not HookManager.ForcedJumps then
+        tempEffects[#tempEffects+1] = effects.ConstantJump
+    end
+
+    return tempEffects
 end
 
 

@@ -19,6 +19,7 @@
         "ExecuteWithDelay",
         "ExecuteUFunction",
         "FString",
-        "StopLoopAsync"
+        "StopLoopAsync",
+        "IterateGameDirectories"
     ]
 }

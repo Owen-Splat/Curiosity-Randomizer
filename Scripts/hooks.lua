@@ -1,23 +1,52 @@
 local settings = {
+    CameraLock = false,
+    ForcedJumps = false,
     LowGravity = false
 }
 
-RegisterHook("/Game/AnimX/_Common/CharBP_Base.CharBP_Base_C:SetGravity", function(Character, Gravity, IsTemporary)
-    if not settings.LowGravity then
-        return
-    end
+local BaseGrav = nil
+local JumpGrav = nil
 
-    local ActualCharacter = Character:get()
-    if not ActualCharacter then return end
 
-    -- ActualCharacter['Base Falling Gravity'] = Gravity:get() / 2.0
-    if not IsTemporary then
-        ActualCharacter.Gravity = Gravity:get() / 2.0
+RegisterHook("/Game/AnimX/_Common/CharBP_Base.CharBP_Base_C:ReceiveTick", function(self, DeltaSeconds)
+    local Character = self:get()
+    if not Character or not Character:IsValid() then return end
+
+    if settings.CameraLock then
+        Character['Camera Speed - Pitch'] = 0.0
+        Character['Camera Speed - Yaw'] = 0.0
     else
-        ActualCharacter.HasTemporaryGravity = IsTemporary
-        ActualCharacter:SetTemporaryGravity(Gravity:get())
+        Character['Camera Speed - Pitch'] = 0.6
+        Character['Camera Speed - Yaw'] = 0.6
     end
-    -- ActualCharacter.BaseGravity = Gravity:get() / 2.0
+
+    if settings.ForcedJumps then
+        if Character['Is OnGround'] then
+            Character:DoJump(false, 1.0)
+            Character['Jump in Place'] = false
+            -- Character['Jump Winding Up'] = false
+        end
+    end
 end)
+
+
+RegisterHook("/Game/AnimX/_Common/CharBP_Base.CharBP_Base_C:SetGravity", function(self, Gravity, IsTemporary)
+    local Character = self:get()
+    if not Character or not Character:IsValid() then return end
+
+    if settings.LowGravity then
+        Character['Base Falling Gravity'] = Character['Base Falling Gravity'] / 2.0
+        Character['Jumping Hold Gravity'] = Character['Jumping Hold Gravity'] / 2.0
+    else
+        if not BaseGrav and not JumpGrav then
+            BaseGrav = Character['Base Falling Gravity']
+            JumpGrav = Character['Jumping Hold Gravity']
+        else
+            Character['Base Falling Gravity'] = BaseGrav
+            Character['Jumping Hold Gravity'] = JumpGrav
+        end
+    end
+end)
+
 
 return settings
