@@ -21,6 +21,8 @@
         "FString",
         "StopLoopAsync",
         "IterateGameDirectories",
-        "LoopClock"
+        "LoopClock",
+        "StaticConstructObject",
+        "ExecuteInGameThread"
     ]
 }

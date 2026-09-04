@@ -1,5 +1,5 @@
 local TimerData = require("timer")
-
+local UIManager = require("ui")
 print("[EffectRandomizer] Script initialized successfully!")
 
 local UEHelpers = require("UEHelpers")
@@ -27,6 +27,7 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
         end
         EffectManager.Cleanup()
         LoopCount = 0
+        UIManager.SetText("Random Effects Mod v0.1.1 by Owen_Splat")
     end)
 
     EffectLoop = LoopAsync(TimerData.Seconds * 1000, function()
@@ -70,19 +71,11 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
             validFuncs[#validFuncs+1] = EffectManager.LaunchRandomDirection
         end
 
-        -- Give time for the cleanup before starting the new effect
-        ExecuteWithDelay(1000, function()
-            local randomIndex = math.random(1, #validFuncs)
-            validFuncs[randomIndex](Character)
-        end)
-
-        -- If it's not a temp effect (cleared on next loop)
-        -- then we want to get rid of the text early so it doesn't linger for the whole loop
-        ExecuteWithDelay(5000, function()
-            if not EffectManager.IsCurrentTemporary then
-                EffectManager.ClearText()
-            end
-        end)
+        local randomIndex = math.random(1, #validFuncs)
+        validFuncs[randomIndex](Character)
         return false
     end)
 end)
+
+-- Init our custom text
+UIManager.AddText()

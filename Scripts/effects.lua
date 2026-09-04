@@ -1,8 +1,8 @@
 local UEHelpers = require("UEHelpers")
 local TimerData = require("timer")
+local UIManager = require("ui")
 local HookManager = nil
 
-local SpawnedText = nil
 local SpawnedObj = nil
 
 local effects = {}
@@ -17,17 +17,7 @@ function effects.InitHooks()
 end
 
 
-function effects.ClearText()
-    if SpawnedText and SpawnedText:IsValid() then
-        SpawnedText:K2_DestroyActor()
-    end
-    SpawnedText = nil
-end
-
-
 function effects.Cleanup()
-    effects.ClearText()
-
     if SpawnedObj and SpawnedObj:IsValid() then
         SpawnedObj:K2_DestroyActor()
     end
@@ -45,25 +35,17 @@ function effects.Cleanup()
 end
 
 
-function effects.ShowText(Character, RawText)
-    local TargetClassPath = "/Game/Blueprints/Tutorial/BP_TutorialInputTrigger.BP_TutorialInputTrigger_C"
-    local ActorClass = StaticFindObject(TargetClassPath)
-    if not ActorClass or not ActorClass:IsValid() then return end
-    local World = Character:GetWorld()
-    local SpawnLocation = {X = 0.0, Y = 0.0, Z = 0.0}
-    local SpawnRotation = {Pitch = 0.0, Yaw = 0.0, Roll = 0.0}
-    SpawnedText = World:SpawnActor(ActorClass, SpawnLocation, SpawnRotation)
-    SpawnedText['Action Text'] = FText(RawText)
-    SpawnedText:Show()
+function effects.ShowText(RawText)
+    UIManager.SetText(RawText)
 end
 
 
 function effects.ToggleDoubleJump(Character)
     if Character.DoubleJump then
-        effects.ShowText(Character, "DOUBLE JUMP DISABLED")
+        effects.ShowText("DOUBLE JUMP DISABLED")
         Character:SetDoubleJump(false)
     else
-        effects.ShowText(Character, "DOUBLE JUMP ENABLED")
+        effects.ShowText("DOUBLE JUMP ENABLED")
         Character:SetDoubleJump(true)
     end
 end
@@ -71,10 +53,10 @@ end
 
 function effects.ToggleDash(Character)
     if Character.dashenablediguess then
-        effects.ShowText(Character, "DASH HAS BEEN DISABLED")
+        effects.ShowText("DASH HAS BEEN DISABLED")
         Character:SetDashEnabled(false)
     else
-        effects.ShowText(Character, "DASH HAS BEEN ENABLED")
+        effects.ShowText("DASH HAS BEEN ENABLED")
         Character:SetDashEnabled(true)
     end
 end
@@ -84,7 +66,7 @@ function effects.SpawnDrum(Character)
     local TargetClassPath = "/Game/Blueprints/BouncyPlatforms/Bouncy_Drums.Bouncy_Drums_C"
     local ActorClass = StaticFindObject(TargetClassPath)
     if not ActorClass or not ActorClass:IsValid() then return end
-    effects.ShowText(Character, "Ba-dum-tss")
+    effects.ShowText("Ba-dum-tss")
     local World = Character:GetWorld()
     local SpawnLocation = Character:K2_GetActorLocation()
     local SpawnRotation = {Pitch = 0.0, Yaw = 0.0, Roll = 0.0}
@@ -96,7 +78,7 @@ function effects.SpawnYarnBall(Character)
     local TargetClassPath = "/Game/Blueprints/Yarn/BP_YarnBall.BP_YarnBall_C"
     local ActorClass = StaticFindObject(TargetClassPath)
     if not ActorClass or not ActorClass:IsValid() then return end
-    effects.ShowText(Character, "You're on a roll!")
+    effects.ShowText("You're on a roll!")
     local World = Character:GetWorld()
     local SpawnLocation = Character:K2_GetActorLocation()
     SpawnLocation.Z = SpawnLocation.Z + 150.0
@@ -114,7 +96,7 @@ end
 function effects.LaunchRandomDirection(Character)
     local vel = {X = math.random(-500, 500), Y = math.random(-500, 500), Z = math.random(1000, 1500)}
     local off = {X = 0.0, Y = 0.0, Z = 0.0}
-    effects.ShowText(Character, "You're going places!")
+    effects.ShowText("You're going places!")
     Character:LaunchWithForce(vel, 5.0, off, true)
 end
 
@@ -124,10 +106,10 @@ function effects.InvertColors(Character)
     if not Cam or not Cam:IsValid() then return end
     Character.Camera.PostProcessSettings.bOverride_ColorSaturation = true
     if Cam.PostProcessSettings.ColorSaturation.X == -1.0 then
-        effects.ShowText(Character, "Normal Colors")
+        effects.ShowText("Normal Colors")
         Cam.PostProcessSettings.ColorSaturation = {X=1.0, Y=1.0, Z=1.0, W=1.0}
     else
-        effects.ShowText(Character, "Inverted Colors")
+        effects.ShowText("Inverted Colors")
         Cam.PostProcessSettings.ColorSaturation = {X=-1.0, Y=-1.0, Z=-1.0, W=1.0}
     end
 end
@@ -136,7 +118,7 @@ end
 -- TEMP EFFECTS
 function effects.ToggleLowGravity(Character)
     if not HookManager then return end
-    effects.ShowText(Character, "Low Gravity (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.ShowText("Low Gravity (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.LowGravity = true
     effects.IsCurrentTemporary = true
 end
@@ -144,7 +126,7 @@ end
 
 function effects.LockCamera(Character)
     if not HookManager then return end
-    effects.ShowText(Character, "Locked camera (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.ShowText("Locked camera (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.CameraLock = true
     effects.IsCurrentTemporary = true
 end
@@ -152,7 +134,7 @@ end
 
 function effects.ReverseCamera(Character)
     if not HookManager then return end
-    effects.ShowText(Character, "Inverted camera (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.ShowText("Inverted camera (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.ReversedCamera = true
     effects.IsCurrentTemporary = true
 end
@@ -160,7 +142,7 @@ end
 
 function effects.ConstantJump(Character)
     if not HookManager then return end
-    effects.ShowText(Character, "Forced jumps (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.ShowText("Forced jumps (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.ForcedJumps = true
     effects.IsCurrentTemporary = true
 end
@@ -168,7 +150,7 @@ end
 
 function effects.UpsideDown(Character)
     if not HookManager then return end
-    effects.ShowText(Character, "Upside-Down View (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.ShowText("Upside-Down View (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.UpsideDown = true
     effects.IsCurrentTemporary = true
 end
@@ -176,7 +158,7 @@ end
 
 function effects.Freeze(Character)
     if not HookManager then return end
-    effects.ShowText(Character, "Frozen (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.ShowText("Frozen (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.Frozen = true
     effects.IsCurrentTemporary = true
 end
