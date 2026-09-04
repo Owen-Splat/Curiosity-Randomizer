@@ -25,7 +25,7 @@ function effects.Cleanup()
 
     if not HookManager then return end
 
-    -- key any temp effect at the next cycle
+    -- clear any temp effect at the next cycle
     for key, value in pairs(HookManager) do
         if value == true then
             HookManager[key] = false
@@ -42,10 +42,10 @@ end
 
 function effects.ToggleDoubleJump(Character)
     if Character.DoubleJump then
-        effects.ShowText("DOUBLE JUMP DISABLED")
+        effects.ShowText("DOUBLE JUMP has been disabled")
         Character:SetDoubleJump(false)
     else
-        effects.ShowText("DOUBLE JUMP ENABLED")
+        effects.ShowText("DOUBLE JUMP has been enabled")
         Character:SetDoubleJump(true)
     end
 end
@@ -53,10 +53,10 @@ end
 
 function effects.ToggleDash(Character)
     if Character.dashenablediguess then
-        effects.ShowText("DASH HAS BEEN DISABLED")
+        effects.ShowText("DASH has been disabled")
         Character:SetDashEnabled(false)
     else
-        effects.ShowText("DASH HAS BEEN ENABLED")
+        effects.ShowText("DASH has been enabled")
         Character:SetDashEnabled(true)
     end
 end
