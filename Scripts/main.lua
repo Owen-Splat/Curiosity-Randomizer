@@ -6,7 +6,9 @@ local UEHelpers = require("UEHelpers")
 local EffectManager = require("effects")
 
 local EffectLoop = nil
+local TimerLoop = nil
 local LoopCount = 0
+local LoopRunning = false
 
 -- These are the basic funcs that always have a chance to appear
 local FunctionPool = {
@@ -17,17 +19,52 @@ local FunctionPool = {
     EffectManager.InvertColors,
 }
 
+
+local function ResetAndHideUI()
+    LoopRunning = false
+    if TimerLoop then
+        StopLoopAsync(TimerLoop)
+        TimerLoop = nil
+    end
+    if EffectLoop then
+        StopLoopAsync(EffectLoop)
+        EffectLoop = nil
+    end
+    EffectManager.Cleanup()
+    LoopCount = 0
+    UIManager.SetText("Random Effects Mod v0.1.1 by Owen_Splat")
+    UIManager.timerRaw = TimerData.Seconds + 1
+    UIManager.UpdateTimer()
+end
+
+
+-- We want to clear effects and reset data when the player returns to the title screen
+RegisterHook("/Game/AnimX/_Common/CharBP_Base.CharBP_Base_C:ReceiveEndPlay", function(self)
+    if not self then return end
+    ResetAndHideUI()
+end)
+
+
 -- Start our loop when the player has been created
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, newPawn)
-    -- We want to clear effects and reset data when the player returns to the title screen
-    RegisterHook("/Game/AnimX/_Common/CharBP_Base.CharBP_Base_C:ReceiveEndPlay", function()
-        if EffectLoop then
-            StopLoopAsync(EffectLoop)
-            EffectLoop = nil
+    if not self then return end
+
+    if not LoopRunning then
+        ResetAndHideUI()
+    end
+
+    EffectManager:InitHooks()
+    UIManager.SetText("Pending effect...")
+    UIManager.timerRaw = TimerData.Seconds
+    UIManager.UpdateTimer()
+    LoopRunning = true
+
+    TimerLoop = LoopAsync(1000, function()
+        if not LoopRunning then
+            return true
         end
-        EffectManager.Cleanup()
-        LoopCount = 0
-        UIManager.SetText("Random Effects Mod v0.1.1 by Owen_Splat")
+        UIManager.UpdateTimer()
+        return false
     end)
 
     EffectLoop = LoopAsync(TimerData.Seconds * 1000, function()
@@ -42,11 +79,9 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
             return true
         end
 
-        -- Now that the player exists, we can run our hooks
-        EffectManager:InitHooks()
-
         -- We want to cleanup old effects (text and spawned objs) before adding a new effect
         EffectManager.Cleanup()
+        UIManager.timerRaw = TimerData.Seconds
 
         -- Keep track of the number of loops to control how likely some effects are
         LoopCount = LoopCount + 1
@@ -78,4 +113,5 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
 end)
 
 -- Init our custom text
-UIManager.AddText()
+UIManager.timerRaw = TimerData.Seconds
+UIManager.Init()

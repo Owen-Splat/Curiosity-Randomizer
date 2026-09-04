@@ -23,6 +23,8 @@
         "IterateGameDirectories",
         "LoopClock",
         "StaticConstructObject",
-        "ExecuteInGameThread"
+        "ExecuteInGameThread",
+        "UE4SS",
+        "LoopInGameThreadWithDelay"
     ]
 }
