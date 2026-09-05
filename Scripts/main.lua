@@ -11,8 +11,10 @@ local TimerLoop = nil
 local LoopCount = 0
 local LoopRunning = false
 
+local CurrentSessionID = 0
+
 -- These are the basic funcs that always have a chance to appear
-local FunctionPool = {
+local BaseEffs = {
     EffectManager.ToggleDash,
     EffectManager.ToggleDoubleJump,
     EffectManager.SpawnDrum,
@@ -20,20 +22,24 @@ local FunctionPool = {
     EffectManager.InvertColors,
 }
 
+local TempEffs = {
+    EffectManager.ToggleLowGravity,
+    EffectManager.LockCamera,
+    EffectManager.ReverseCamera,
+    EffectManager.UpsideDown,
+    EffectManager.ConstantJump,
+    EffectManager.Freeze
+}
+
 
 local function ResetUI()
     LoopRunning = false
-    if TimerLoop then
-        StopLoopAsync(TimerLoop)
-        TimerLoop = nil
-    end
-    if EffectLoop then
-        StopLoopAsync(EffectLoop)
-        EffectLoop = nil
-    end
+    TimerLoop = nil
+    EffectLoop = nil
     EffectManager.Cleanup()
     LoopCount = 0
-    UIManager.SetText("Random Effects Mod v0.1.1 by Owen_Splat")
+    UIManager.ResetText()
+    UIManager.ShowTimer()
     UIManager.timerRaw = TimerData.Seconds + 1
     UIManager.UpdateTimer()
 end
@@ -50,20 +56,43 @@ end)
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, newPawn)
     if not self then return end
 
-    if not LoopRunning then
-        ResetUI()
+    local PCon = UEHelpers.GetPlayerController()
+    if PCon and PCon:IsValid() then
+        local PChar = PCon.Character
+        if PChar and PChar:IsValid() then
+            print(PChar:GetFullName(), "\n")
+        end
     end
 
-    Randomizer.Start()
+    CurrentSessionID = CurrentSessionID + 1
+    local MySessionID = CurrentSessionID
 
-    EffectManager:InitHooks()
-    UIManager.SetText("Pending effect...")
-    UIManager.timerRaw = TimerData.Seconds
-    UIManager.UpdateTimer()
-    LoopRunning = true
+    -- If the player is at the vet, don't run our randomizer or effect loops
+    local IsAtVet = false
+    local Carrier = FindFirstOf("BP_CatCarrierFromVet_C")
+    if Carrier and Carrier:IsValid() then
+        IsAtVet = true
+        Carrier:K2_DestroyActor()
+    end
+
+    if IsAtVet then
+        UIManager.HideTimer()
+        UIManager.SetText("You've been a bad kitty...")
+    else
+        ResetUI()
+        Randomizer.Start()
+        EffectManager:InitHooks()
+        UIManager.SetText("Pending effect...")
+        UIManager.timerRaw = TimerData.Seconds
+        UIManager.UpdateTimer()
+        LoopRunning = true
+    end
 
     TimerLoop = LoopAsync(1000, function()
-        if not LoopRunning then
+        if not LoopRunning or MySessionID ~= CurrentSessionID then
+            return true
+        end
+        if IsAtVet then
             return true
         end
         UIManager.UpdateTimer()
@@ -71,6 +100,13 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
     end)
 
     EffectLoop = LoopAsync(TimerData.Seconds * 1000, function()
+        if not LoopRunning or MySessionID ~= CurrentSessionID then
+            return true
+        end
+        if IsAtVet then
+            return true
+        end
+
         -- We still need to validate that the player exists
         -- Otherwise we may run into a nil reference when the player exits to the title screen
         local PlayerController = UEHelpers.GetPlayerController()
@@ -88,25 +124,31 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
 
         -- Keep track of the number of loops to control how likely some effects are
         LoopCount = LoopCount + 1
-        local tempEffs = EffectManager.GetValidTempEffects()
 
         -- Create our total list of effect funcs to run
         local validFuncs = {}
-        for i = 1, #FunctionPool do
-            validFuncs[#validFuncs+1] = FunctionPool[i]
+        for i = 1, #BaseEffs do
+            validFuncs[#validFuncs+1] = BaseEffs[i]
         end
+
+        -- Some temporary effects are nuisances
+        -- So temp effects are only included in the pool every other loop
         if LoopCount % 2 == 0 then
-            if tempEffs then
-                for i = 1, #tempEffs do
-                    validFuncs[#validFuncs+1] = tempEffs[i]
-                end
+            for i = 1, #TempEffs do
+                validFuncs[#validFuncs+1] = TempEffs[i]
             end
         end
 
-        -- Random launches SUCK so we make them rare
-        -- 1/5 chance just to be included, then it still has to be randomly selected
+        -- Random launches SUCK so they are only included in the pool every 5 loops
         if LoopCount % 5 == 0 then
             validFuncs[#validFuncs+1] = EffectManager.LaunchRandomDirection
+        end
+
+        -- Vet visit isnt that bad since you can just leave
+        -- If I decide to force the player to complete it, then I'll lower the odds
+        -- I need to create a check that the player has beds
+        if LoopCount % 5 == 0 then
+            validFuncs[#validFuncs+1] = EffectManager.VetVisit
         end
 
         local randomIndex = math.random(1, #validFuncs)

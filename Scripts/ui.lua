@@ -9,6 +9,7 @@ local Visibility_ALL = 5
 
 local textWidget = nil
 local textControl = nil
+local defaultText = "Randomizer Mod v0.2.0 by Owen_Splat"
 
 local timerWidget = nil
 local timerControl = nil
@@ -31,7 +32,7 @@ local function FLinearColor(R,G,B,A) return {R=R,G=G,B=B,A=A} end
 local function FSlateColor(R,G,B,A) return {SpecifiedColor=FLinearColor(R,G,B,A), ColorUseRule=0} end
 
 
-local function CreateTextWidget(text)
+local function CreateTextWidget()
     local alignment = "top"
 
     local gi = UEHelpers.GetGameInstance()
@@ -48,7 +49,7 @@ local function CreateTextWidget(text)
     local textBlock = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), border, FName("SimpleText"))
 
     textBlock.Font.Size = 20
-    textBlock:SetText(FText(text))
+    textBlock:SetText(FText(defaultText))
     textBlock:SetColorAndOpacity(FSlateColor(1,1,1,1))
     textBlock:SetShadowOffset({X = 1, Y = 1})
     textBlock:SetShadowColorAndOpacity(FLinearColor(0, 0, 0, 0.75))
@@ -119,7 +120,7 @@ end
 
 function funcs.Init()
     ExecuteInGameThread(function()
-        CreateTextWidget("Random Effects Mod v0.1.1 by Owen_Splat")
+        CreateTextWidget()
         CreateTimerWidget(tostring(funcs.timerRaw))
     end)
 end
@@ -128,6 +129,11 @@ end
 function funcs.SetText(text)
     if not textControl then return end
     textControl:SetText(FText(text))
+end
+
+
+function funcs.ResetText()
+    funcs.SetText(defaultText)
 end
 
 
@@ -144,10 +150,29 @@ local function SetTimerVisibility(visibility)
 end
 
 
-function funcs.ToggleTimer()
+local function SetTextVisibility(visibility)
     if not timerWidget or not timerWidget:IsValid() then return end
-    local current = timerWidget:GetVisibility()
-    SetTimerVisibility(current == Visibility_SELFHITTESTINVISIBLE and Visibility_HIDDEN or Visibility_SELFHITTESTINVISIBLE)
+    timerWidget:SetVisibility(visibility)
+end
+
+
+function funcs.ShowText()
+    SetTextVisibility(Visibility_VISIBLE)
+end
+
+
+function funcs.HideText()
+    SetTextVisibility(Visibility_HIDDEN)
+end
+
+
+function funcs.ShowTimer()
+    SetTimerVisibility(Visibility_VISIBLE)
+end
+
+
+function funcs.HideTimer()
+    SetTimerVisibility(Visibility_HIDDEN)
 end
 
 

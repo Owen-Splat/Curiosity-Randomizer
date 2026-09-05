@@ -115,6 +115,16 @@ function effects.InvertColors(Character)
 end
 
 
+function effects.VetVisit(Character)
+    local LevelManager = FindFirstOf("LevelManager_C")
+    if LevelManager and LevelManager:IsValid() then
+        ExecuteInGameThread(function()
+            LevelManager['SwitchToLevel (By Name)'](LevelManager, "Hell")
+        end)
+    end
+end
+
+
 -- TEMP EFFECTS
 function effects.ToggleLowGravity(Character)
     if not HookManager then return end
@@ -161,34 +171,6 @@ function effects.Freeze(Character)
     effects.ShowText("Frozen (" .. tostring(TimerData.Seconds) .. "s)")
     HookManager.Frozen = true
     effects.IsCurrentTemporary = true
-end
-
-
--- Returns each temp effect func if it is free
-function effects.GetValidTempEffects()
-    if not HookManager then return end
-
-    local tempEffects = {}
-    if not HookManager.CameraLock then
-        tempEffects[#tempEffects+1] = effects.LockCamera
-    end
-    if not HookManager.ReversedCamera then
-        tempEffects[#tempEffects+1] = effects.ReverseCamera
-    end
-    if not HookManager.LowGravity then
-        tempEffects[#tempEffects+1] = effects.ToggleLowGravity
-    end
-    if not HookManager.ForcedJumps then
-        tempEffects[#tempEffects+1] = effects.ConstantJump
-    end
-    if not HookManager.UpsideDown then
-        tempEffects[#tempEffects+1] = effects.UpsideDown
-    end
-    if not HookManager.Frozen then
-        tempEffects[#tempEffects+1] = effects.Freeze
-    end
-
-    return tempEffects
 end
 
 
