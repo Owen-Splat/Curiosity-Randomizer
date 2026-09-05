@@ -1,3 +1,4 @@
+local Randomizer = require("randomizer")
 local TimerData = require("timer")
 local UIManager = require("ui")
 print("[EffectRandomizer] Script initialized successfully!")
@@ -20,7 +21,7 @@ local FunctionPool = {
 }
 
 
-local function ResetAndHideUI()
+local function ResetUI()
     LoopRunning = false
     if TimerLoop then
         StopLoopAsync(TimerLoop)
@@ -41,7 +42,7 @@ end
 -- We want to clear effects and reset data when the player returns to the title screen
 RegisterHook("/Game/AnimX/_Common/CharBP_Base.CharBP_Base_C:ReceiveEndPlay", function(self)
     if not self then return end
-    ResetAndHideUI()
+    ResetUI()
 end)
 
 
@@ -50,8 +51,10 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
     if not self then return end
 
     if not LoopRunning then
-        ResetAndHideUI()
+        ResetUI()
     end
+
+    Randomizer.Start()
 
     EffectManager:InitHooks()
     UIManager.SetText("Pending effect...")
@@ -111,6 +114,9 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, new
         return false
     end)
 end)
+
+-- Create the seed when the mod loads
+math.randomseed(os.time())
 
 -- Init our custom text
 UIManager.timerRaw = TimerData.Seconds
