@@ -1,72 +1,57 @@
 local UEHelpers = require("UEHelpers")
 local TimerData = require("timer")
 local UIManager = require("ui")
-local HookManager = nil
 
+local LoopCount = 0
 local SpawnedObj = nil
 
-local effects = {}
+local effects = {
+    settings = {
+        CameraLock = false,
+        ForcedJumps = false,
+        Frozen = false,
+        LowGravity = false,
+        ReversedCamera = false,
+        UpsideDown = false,
+    }
+}
 
-effects.IsCurrentTemporary = false
 
-
-function effects.InitHooks()
-    if not HookManager then
-        HookManager = require("hooks")
+local function ShowText(RawText, IsTemp)
+    if IsTemp then
+        RawText = RawText .. " (" .. tostring(TimerData.Seconds) .. "s)"
     end
-end
-
-
-function effects.Cleanup()
-    if SpawnedObj and SpawnedObj:IsValid() then
-        SpawnedObj:K2_DestroyActor()
-    end
-    SpawnedObj = nil
-
-    if not HookManager then return end
-
-    -- clear any temp effect at the next cycle
-    for key, value in pairs(HookManager) do
-        if value == true then
-            HookManager[key] = false
-        end
-    end
-    effects.IsCurrentTemporary = false
-end
-
-
-function effects.ShowText(RawText)
     UIManager.SetText(RawText)
 end
 
 
-function effects.ToggleDoubleJump(Character)
+local function ToggleDoubleJump(Character)
     if Character.DoubleJump then
-        effects.ShowText("DOUBLE JUMP has been disabled")
+        ShowText("DOUBLE JUMP has been disabled")
         Character:SetDoubleJump(false)
     else
-        effects.ShowText("DOUBLE JUMP has been enabled")
+        ShowText("DOUBLE JUMP has been enabled")
         Character:SetDoubleJump(true)
     end
 end
 
 
-function effects.ToggleDash(Character)
+local function ToggleDash(Character)
     if Character.dashenablediguess then
-        effects.ShowText("DASH has been disabled")
+        ShowText("DASH has been disabled")
         Character:SetDashEnabled(false)
     else
-        effects.ShowText("DASH has been enabled")
+        ShowText("DASH has been enabled")
         Character:SetDashEnabled(true)
     end
 end
 
 
-function effects.SpawnDrum(Character)
+local function SpawnDrum(Character)
     local TargetClassPath = "/Game/Blueprints/BouncyPlatforms/Bouncy_Drums.Bouncy_Drums_C"
     local ActorClass = StaticFindObject(TargetClassPath)
     if not ActorClass or not ActorClass:IsValid() then return end
-    effects.ShowText("Ba-dum-tss")
+    ShowText("Ba-dum-tss")
     local World = Character:GetWorld()
     local SpawnLocation = Character:K2_GetActorLocation()
     local SpawnRotation = {Pitch = 0.0, Yaw = 0.0, Roll = 0.0}
@@ -74,11 +59,11 @@ function effects.SpawnDrum(Character)
 end
 
 
-function effects.SpawnYarnBall(Character)
+local function SpawnYarnBall(Character)
     local TargetClassPath = "/Game/Blueprints/Yarn/BP_YarnBall.BP_YarnBall_C"
     local ActorClass = StaticFindObject(TargetClassPath)
     if not ActorClass or not ActorClass:IsValid() then return end
-    effects.ShowText("You're on a roll!")
+    ShowText("You're on a roll!")
     local World = Character:GetWorld()
     local SpawnLocation = Character:K2_GetActorLocation()
     SpawnLocation.Z = SpawnLocation.Z + 150.0
@@ -93,29 +78,29 @@ function effects.SpawnYarnBall(Character)
 end
 
 
-function effects.LaunchRandomDirection(Character)
+local function LaunchRandomDirection(Character)
     local vel = {X = math.random(-500, 500), Y = math.random(-500, 500), Z = math.random(1000, 1500)}
     local off = {X = 0.0, Y = 0.0, Z = 0.0}
-    effects.ShowText("You're going places!")
+    ShowText("You're going places!")
     Character:LaunchWithForce(vel, 5.0, off, true)
 end
 
 
-function effects.InvertColors(Character)
+local function InvertColors(Character)
     local Cam = Character.Camera
     if not Cam or not Cam:IsValid() then return end
     Character.Camera.PostProcessSettings.bOverride_ColorSaturation = true
     if Cam.PostProcessSettings.ColorSaturation.X == -1.0 then
-        effects.ShowText("Normal Colors")
+        ShowText("Normal Colors")
         Cam.PostProcessSettings.ColorSaturation = {X=1.0, Y=1.0, Z=1.0, W=1.0}
     else
-        effects.ShowText("Inverted Colors")
+        ShowText("Inverted Colors")
         Cam.PostProcessSettings.ColorSaturation = {X=-1.0, Y=-1.0, Z=-1.0, W=1.0}
     end
 end
 
 
-function effects.VetVisit(Character)
+local function VetVisit(Character)
     local LevelManager = FindFirstOf("LevelManager_C")
     if LevelManager and LevelManager:IsValid() then
         ExecuteInGameThread(function()
@@ -126,51 +111,90 @@ end
 
 
 -- TEMP EFFECTS
-function effects.ToggleLowGravity(Character)
-    if not HookManager then return end
-    effects.ShowText("Low Gravity (" .. tostring(TimerData.Seconds) .. "s)")
-    HookManager.LowGravity = true
-    effects.IsCurrentTemporary = true
+local function ToggleLowGravity(Character)
+    ShowText("Low Gravity (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.settings.LowGravity = true
 end
 
 
-function effects.LockCamera(Character)
-    if not HookManager then return end
-    effects.ShowText("Locked camera (" .. tostring(TimerData.Seconds) .. "s)")
-    HookManager.CameraLock = true
-    effects.IsCurrentTemporary = true
+local function LockCamera(Character)
+    ShowText("Locked camera (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.settings.CameraLock = true
 end
 
 
-function effects.ReverseCamera(Character)
-    if not HookManager then return end
-    effects.ShowText("Inverted camera (" .. tostring(TimerData.Seconds) .. "s)")
-    HookManager.ReversedCamera = true
-    effects.IsCurrentTemporary = true
+local function ReverseCamera(Character)
+    ShowText("Inverted camera (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.settings.ReversedCamera = true
 end
 
 
-function effects.ConstantJump(Character)
-    if not HookManager then return end
-    effects.ShowText("Forced jumps (" .. tostring(TimerData.Seconds) .. "s)")
-    HookManager.ForcedJumps = true
-    effects.IsCurrentTemporary = true
+local function ConstantJump(Character)
+    ShowText("Forced jumps (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.settings.ForcedJumps = true
 end
 
 
-function effects.UpsideDown(Character)
-    if not HookManager then return end
-    effects.ShowText("Upside-Down View (" .. tostring(TimerData.Seconds) .. "s)")
-    HookManager.UpsideDown = true
-    effects.IsCurrentTemporary = true
+local function UpsideDown(Character)
+    ShowText("Upside-Down View (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.settings.UpsideDown = true
 end
 
 
-function effects.Freeze(Character)
-    if not HookManager then return end
-    effects.ShowText("Frozen (" .. tostring(TimerData.Seconds) .. "s)")
-    HookManager.Frozen = true
-    effects.IsCurrentTemporary = true
+local function Freeze(Character)
+    ShowText("Frozen (" .. tostring(TimerData.Seconds) .. "s)")
+    effects.settings.Frozen = true
+end
+
+
+-- funcs for our tick hook to call
+local function Cleanup()
+    -- destroy any spawned objects
+    if SpawnedObj and SpawnedObj:IsValid() then
+        SpawnedObj:K2_DestroyActor()
+    end
+    SpawnedObj = nil
+
+    -- clear any temp effect at the next cycle
+    for key, value in pairs(effects.settings) do
+        effects.settings[key] = false
+    end
+end
+
+
+function effects.ApplyRandomEffect(Player)
+    Cleanup()
+    LoopCount = LoopCount + 1
+
+    local validFuncs = {
+        ToggleDash,
+        ToggleDoubleJump,
+        SpawnDrum,
+        SpawnYarnBall,
+        InvertColors
+    }
+
+    if LoopCount % 2 == 0 then
+        validFuncs[#validFuncs+1] = ToggleLowGravity
+        validFuncs[#validFuncs+1] = LockCamera
+        validFuncs[#validFuncs+1] = ReverseCamera
+        validFuncs[#validFuncs+1] = UpsideDown
+        validFuncs[#validFuncs+1] = ConstantJump
+        validFuncs[#validFuncs+1] = Freeze
+    end
+
+    if LoopCount % 4 == 0 then
+        validFuncs[#validFuncs+1] = LaunchRandomDirection
+    end
+
+    if LoopCount % 5 == 0 then
+        if not Player.SleepController['Spawned Bed'] == nil then
+            validFuncs[#validFuncs+1] = VetVisit
+        end
+    end
+
+    local randomIndex = math.random(1, #validFuncs)
+    validFuncs[randomIndex](Player)
 end
 
 

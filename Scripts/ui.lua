@@ -1,4 +1,5 @@
 local UEHelpers = require("UEHelpers")
+local TimerData = require("timer")
 
 local Visibility_VISIBLE = 0
 local Visibility_COLLAPSED = 1
@@ -13,6 +14,7 @@ local defaultText = "Randomizer Mod v0.2.0 by Owen_Splat"
 
 local timerWidget = nil
 local timerControl = nil
+local timerRaw = 20.0
 
 -- Alignment presets
 local alignments = {
@@ -25,8 +27,8 @@ local alignments = {
     bottomright = {anchor = {1, 1}, align = {1, 1}, pos = {-10, -10}}
 }
 
+
 local funcs = {}
-funcs.timerRaw = 0
 
 local function FLinearColor(R,G,B,A) return {R=R,G=G,B=B,A=A} end
 local function FSlateColor(R,G,B,A) return {SpecifiedColor=FLinearColor(R,G,B,A), ColorUseRule=0} end
@@ -121,7 +123,8 @@ end
 function funcs.Init()
     ExecuteInGameThread(function()
         CreateTextWidget()
-        CreateTimerWidget(tostring(funcs.timerRaw))
+        timerRaw = TimerData.Seconds // 1
+        CreateTimerWidget(tostring(timerRaw))
     end)
 end
 
@@ -132,15 +135,15 @@ function funcs.SetText(text)
 end
 
 
-function funcs.ResetText()
-    funcs.SetText(defaultText)
-end
-
-
-function funcs.UpdateTimer()
+function funcs.UpdateTimer(DeltaSeconds)
     if not timerControl then return end
-    funcs.timerRaw = funcs.timerRaw - 1
-    timerControl:SetText(FText(tostring(funcs.timerRaw)))
+    timerRaw = timerRaw - DeltaSeconds
+    if timerRaw <= 0.0 then
+        timerRaw = 0.0
+    end
+    local timerString = string.format("%.2f", timerRaw)
+    timerControl:SetText(FText(timerString))
+    return timerRaw
 end
 
 
@@ -173,6 +176,20 @@ end
 
 function funcs.HideTimer()
     SetTimerVisibility(Visibility_HIDDEN)
+end
+
+
+function funcs.ResetTimer()
+    timerRaw = TimerData.Seconds // 1
+end
+
+
+function funcs.Reset()
+    funcs.ShowText()
+    funcs.ShowTimer()
+    funcs.SetText(defaultText)
+    funcs.ResetTimer()
+    funcs.UpdateTimer(0.0)
 end
 
 
