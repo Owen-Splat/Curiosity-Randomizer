@@ -76,15 +76,6 @@ RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player
     local MovementComp = Player.CharacterMovement
     if not MovementComp or not MovementComp:IsValid() then return end
 
-    if EffectManager.settings.Frozen then
-        -- Launch player to end states like walls runs, mantling, etc
-        local v3 = {X=0.0, Y=0.0, Z=0.0}
-        Player:LaunchWithForce(v3, 0.0, v3, true)
-        MovementComp.GravityScale = 0.0
-    else
-        MovementComp.GravityScale = Player.Gravity
-    end
-
     -- The player would still have low gravity for a bit after the effect
     -- This means the GravityScale property isn't updated every frame, but on entering states
     -- The player object has a Gravity variable that matches the intended GravityScale
@@ -94,5 +85,13 @@ RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player
         MovementComp.GravityScale = Player.Gravity * 0.25
     else
         MovementComp.GravityScale = Player.Gravity
+    end
+
+    if EffectManager.settings.Frozen then
+        -- Launch player to end states like walls runs, mantling, etc
+        local v3 = {X=0.0, Y=0.0, Z=0.0}
+        Player:LaunchWithForce(v3, 0.0, v3, true)
+        -- Player still has some gravity so set it to 0
+        MovementComp.GravityScale = 0.0
     end
 end)
