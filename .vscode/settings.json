@@ -23,6 +23,7 @@
         "StaticConstructObject",
         "ExecuteInGameThread",
         "UE4SS",
-        "LoopInGameThreadWithDelay"
+        "LoopInGameThreadWithDelay",
+        "Key"
     ]
 }

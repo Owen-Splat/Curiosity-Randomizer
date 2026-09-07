@@ -23,9 +23,21 @@ RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player
         return
     end
 
-    Randomizer.Start()
     UIManager.Reset()
-    UIManager.SetText("Pending effect...")
+
+    local settings = UIManager.GetSettings()
+    if not settings then return end
+
+    if settings["Collectables"] == true then
+        Randomizer.Start()
+    end
+
+    if settings["Effects"] == true then
+        UIManager.SetText("Pending effect...")
+    else
+        UIManager.HideText()
+        UIManager.HideTimer()
+    end
 end)
 
 
@@ -33,6 +45,9 @@ end)
 -- We also now handle the effect timer here, it will stop counting down when the player pauses
 RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player_C:ReceiveTick", function(self, DeltaSeconds)
     if IsAtVet then return end
+
+    local settings = UIManager.GetSettings()
+    if not settings or not settings["Effects"] then return end
 
     local Player = FindFirstOf("CharBP_Cat_R_Player_C")
     if not Player or not Player:IsValid() then return end

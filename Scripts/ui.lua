@@ -10,11 +10,19 @@ local Visibility_ALL = 5
 
 local textWidget = nil
 local textControl = nil
-local defaultText = "Randomizer Mod v0.2.0 by Owen_Splat"
+local defaultText = "Randomizer Mod v0.2.0 by Owen_Splat\nPress F5 to open the randomizer menu"
 
 local timerWidget = nil
 local timerControl = nil
 local timerRaw = 20.0
+
+local modMenuHUD = nil
+local modMenuVisible = true
+
+local collectablesWidget = nil
+local effectsWidget = nil
+local timerWidget = nil
+local CurrentSensitivity = 1.0
 
 -- Alignment presets
 local alignments = {
@@ -70,7 +78,7 @@ local function CreateTextWidget()
     border.Visibility = 4
     textBlock.Visibility = 4
 
-    hud:AddToViewport(99)
+    hud:AddToViewport(101)
 
     textWidget = canvas
     textControl = textBlock
@@ -113,10 +121,103 @@ local function CreateTimerWidget(text)
     border.Visibility = 4
     textBlock.Visibility = 4
 
-    hud:AddToViewport(99)
+    hud:AddToViewport(101)
 
     timerWidget = canvas
     timerControl = textBlock
+end
+
+
+local function CreateModMenu()
+    -- fluff
+    local gi = UEHelpers.GetGameInstance()
+    local hud = StaticConstructObject(StaticFindObject("/Script/UMG.UserWidget"), gi, FName("MenuHUD"))
+    hud.WidgetTree = StaticConstructObject(StaticFindObject("/Script/UMG.WidgetTree"), hud, FName("MenuTree"))
+
+    local canvas = StaticConstructObject(StaticFindObject("/Script/UMG.CanvasPanel"), hud.WidgetTree, FName("MenuCanvas"))
+    hud.WidgetTree.RootWidget = canvas
+
+    local border = StaticConstructObject(StaticFindObject("/Script/UMG.Border"), canvas, FName("MenuBorder"))
+    border:SetBrushColor(FLinearColor(0.05, 0.05, 0.05, .95))
+    border:SetPadding({Left = 30, Top = 30, Right = 30, Bottom = 30})
+
+    local verticalBox = StaticConstructObject(StaticFindObject("/Script/UMG.VerticalBox"), border, FName("MenuVerticalBox"))
+    border:SetContent(verticalBox)
+
+    -- menu title
+    local titleLabel = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), verticalBox, FName("TitleLabel"))
+    titleLabel.Font.Size = 24
+    titleLabel:SetText(FText("Randomizer Mod Menu\n"))
+    verticalBox:AddChildToVerticalBox(titleLabel)
+
+    -- randomize collectables
+    local collectablesBox = StaticConstructObject(StaticFindObject("/Script/UMG.HorizontalBox"), border, FName("CollectablesBox"))
+
+    collectablesWidget = StaticConstructObject(StaticFindObject("/Script/UMG.CheckBox"), collectablesBox, FName("CollectablesCheck"))
+    collectablesWidget:SetIsChecked(true)
+
+    local collectablesLabel = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), collectablesBox, FName("CollectablesLabel"))
+    collectablesLabel.Font.Size = 16
+    collectablesLabel:SetText(FText(" Randomize Collectables"))
+
+    collectablesBox:AddChildToHorizontalBox(collectablesWidget)
+    collectablesBox:AddChildToHorizontalBox(collectablesLabel)
+    verticalBox:AddChildToVerticalBox(collectablesBox)
+
+    -- random effects
+    local effectsBox = StaticConstructObject(StaticFindObject("/Script/UMG.HorizontalBox"), border, FName("EffectsBox"))
+
+    effectsWidget = StaticConstructObject(StaticFindObject("/Script/UMG.CheckBox"), effectsBox, FName("EffectsCheck"))
+    effectsWidget:SetIsChecked(true)
+
+    local effectsLabel = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), effectsBox, FName("EffectsLabel"))
+    effectsLabel.Font.Size = 16
+    effectsLabel:SetText(FText(" Random Effects"))
+
+    effectsBox:AddChildToHorizontalBox(effectsWidget)
+    effectsBox:AddChildToHorizontalBox(effectsLabel)
+    verticalBox:AddChildToVerticalBox(effectsBox)
+
+    -- fluff
+    local slot = canvas:AddChildToCanvas(border)
+    slot:SetSize({X = 400, Y = 500})
+    slot:SetAnchors({Minimum = {X = 0.5, Y = 0.5}, Maximum = {X = 0.5, Y = 0.5}})
+    slot:SetAlignment({X = 0.5, Y = 0.5})
+    slot:SetPosition({X = 0, Y = 0})
+
+    hud:AddToViewport(102)
+    hud:SetVisibility(0)
+    modMenuHUD = hud
+end
+
+
+function HideModMenu()
+    if not modMenuHUD or not modMenuHUD:IsValid() then return end
+    modMenuHUD:SetVisibility(Visibility_HIDDEN)
+end
+
+
+local function ToggleModMenu()
+    -- only allow the menu on the title screen / dont run if character exists
+    local MainMenu = FindFirstOf("BP_MainMenuState_C")
+    if not MainMenu or not MainMenu:IsValid() then return end
+
+    if not textWidget or not textWidget:IsValid() then return end
+    if not timerWidget or not timerWidget:IsValid() then return end
+    if not modMenuHUD or not modMenuHUD:IsValid() then return end
+
+    modMenuVisible = not modMenuVisible
+
+    if modMenuVisible then
+        modMenuHUD:SetVisibility(Visibility_VISIBLE)
+        textWidget:SetVisibility(Visibility_HIDDEN)
+        timerWidget:SetVisibility(Visibility_HIDDEN)
+    else
+        modMenuHUD:SetVisibility(Visibility_HIDDEN)
+        textWidget:SetVisibility(Visibility_SELFHITTESTINVISIBLE)
+        timerWidget:SetVisibility(Visibility_SELFHITTESTINVISIBLE)
+        funcs.Reset()
+    end
 end
 
 
@@ -125,6 +226,9 @@ function funcs.Init()
         CreateTextWidget()
         timerRaw = TimerData.Seconds / 1.0
         CreateTimerWidget(tostring(timerRaw))
+        CreateModMenu()
+        RegisterKeyBind(Key.F5, ToggleModMenu)
+        ToggleModMenu()
     end)
 end
 
@@ -154,13 +258,13 @@ end
 
 
 local function SetTextVisibility(visibility)
-    if not timerWidget or not timerWidget:IsValid() then return end
-    timerWidget:SetVisibility(visibility)
+    if not textWidget or not textWidget:IsValid() then return end
+    textWidget:SetVisibility(visibility)
 end
 
 
 function funcs.ShowText()
-    SetTextVisibility(Visibility_VISIBLE)
+    SetTextVisibility(Visibility_SELFHITTESTINVISIBLE)
 end
 
 
@@ -170,7 +274,7 @@ end
 
 
 function funcs.ShowTimer()
-    SetTimerVisibility(Visibility_VISIBLE)
+    SetTimerVisibility(Visibility_SELFHITTESTINVISIBLE)
 end
 
 
@@ -184,12 +288,29 @@ function funcs.ResetTimer()
 end
 
 
+function funcs.GetSettings()
+    if not collectablesWidget then return end
+    if not effectsWidget then return end
+
+    return {
+        ["Collectables"] = collectablesWidget:IsChecked(),
+        ["Effects"] = effectsWidget:IsChecked()
+    }
+end
+
+
 function funcs.Reset()
+    local settings = funcs.GetSettings()
+    if settings and settings["Effects"] then
+        funcs.ShowTimer()
+        funcs.ResetTimer()
+        funcs.UpdateTimer(0.0)
+    else
+        funcs.HideTimer()
+    end
     funcs.ShowText()
-    funcs.ShowTimer()
     funcs.SetText(defaultText)
-    funcs.ResetTimer()
-    funcs.UpdateTimer(0.0)
+    HideModMenu()
 end
 
 
