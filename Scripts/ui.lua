@@ -123,7 +123,7 @@ end
 function funcs.Init()
     ExecuteInGameThread(function()
         CreateTextWidget()
-        timerRaw = TimerData.Seconds // 1
+        timerRaw = TimerData.Seconds / 1.0
         CreateTimerWidget(tostring(timerRaw))
     end)
 end
@@ -180,7 +180,7 @@ end
 
 
 function funcs.ResetTimer()
-    timerRaw = TimerData.Seconds // 1
+    timerRaw = TimerData.Seconds / 1.0
 end
 
 
