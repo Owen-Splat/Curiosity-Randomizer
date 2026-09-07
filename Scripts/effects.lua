@@ -125,38 +125,38 @@ end
 
 
 -- TEMP EFFECTS
-local function ToggleLowGravity(Character)
-    ShowText("Low Gravity (" .. tostring(TimerData.Seconds) .. "s)")
-    effects.settings.LowGravity = true
-end
-
-
 local function LockCamera(Character)
-    ShowText("Locked camera (" .. tostring(TimerData.Seconds) .. "s)")
+    ShowText("Locked camera", true)
     effects.settings.CameraLock = true
 end
 
 
 local function ReverseCamera(Character)
-    ShowText("Inverted camera (" .. tostring(TimerData.Seconds) .. "s)")
+    ShowText("Inverted camera", true)
     effects.settings.ReversedCamera = true
 end
 
 
-local function ConstantJump(Character)
-    ShowText("Forced jumps (" .. tostring(TimerData.Seconds) .. "s)")
-    effects.settings.ForcedJumps = true
-end
-
-
 local function UpsideDown(Character)
-    ShowText("Upside-Down View (" .. tostring(TimerData.Seconds) .. "s)")
+    ShowText("Upside-Down View", true)
     effects.settings.UpsideDown = true
 end
 
 
+local function ConstantJump(Character)
+    ShowText("Forced jumps", true)
+    effects.settings.ForcedJumps = true
+end
+
+
+local function ToggleLowGravity(Character)
+    ShowText("Low Gravity", true)
+    effects.settings.LowGravity = true
+end
+
+
 local function Freeze(Character)
-    ShowText("Frozen (" .. tostring(TimerData.Seconds) .. "s)")
+    ShowText("Frozen", true)
     effects.settings.Frozen = true
 end
 
