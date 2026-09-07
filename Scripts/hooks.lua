@@ -2,6 +2,8 @@ local EffectManager = require("effects")
 local Randomizer = require("randomizer")
 local UIManager = require("ui")
 
+local IsAtVet = false
+
 
 -- reset the mod UI when the player object is destroyed
 RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player_C:ReceiveEndPlay", function(self, EndPlayReason)
@@ -12,17 +14,26 @@ end)
 
 -- Grab and set necessary mod data when the player object is created
 RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player_C:ReceiveBeginPlay", function(self)
+    -- Don't run our mod stuff when at the vet
+    local Carrier = FindFirstOf("BP_CatCarrierFromVet_C")
+    if Carrier and Carrier:IsValid() then
+        IsAtVet = true
+        UIManager.HideText()
+        UIManager.HideTimer()
+        return
+    end
+
     Randomizer.Start()
     UIManager.Reset()
     UIManager.SetText("Pending effect...")
-    UIManager.ResetTimer()
-    UIManager.UpdateTimer(0.0)
 end)
 
 
 -- Updates once a frame for our player object, this is where we handle appying temporary effects
 -- We also now handle the effect timer here, it will stop counting down when the player pauses
 RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player_C:ReceiveTick", function(self, DeltaSeconds)
+    if IsAtVet then return end
+
     local Player = FindFirstOf("CharBP_Cat_R_Player_C")
     if not Player or not Player:IsValid() then return end
 
@@ -63,22 +74,25 @@ RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player
 
     -- From this point on are effects that edit movement properties
     local MovementComp = Player.CharacterMovement
-    if MovementComp and MovementComp:IsValid() then return end
+    if not MovementComp or not MovementComp:IsValid() then return end
 
     if EffectManager.settings.Frozen then
         -- Launch player to end states like walls runs, mantling, etc
         local v3 = {X=0.0, Y=0.0, Z=0.0}
-        Player:LaunchWithForce(v3, 9.0, v3, true)
-        -- Freeze player vel, still falls slowly so we make upward vel the default 9.8
-        -- idk if it's perfect but it seems to work well
-        -- MovementComp.Velocity = {X=0.0, Y=0.0, Z=9.8}
+        Player:LaunchWithForce(v3, 0.0, v3, true)
+        MovementComp.GravityScale = 0.0
+    else
+        MovementComp.GravityScale = Player.Gravity
     end
 
-    -- The player would still have low gravity after the effect ended as long as they held jump
-    -- This means that this property doesnt immediately update, so we need to do it ourselves
+    -- The player would still have low gravity for a bit after the effect
+    -- This means the GravityScale property isn't updated every frame, but on entering states
+    -- The player object has a Gravity variable that matches the intended GravityScale
+    -- Setting it has no effect, but if it is set at the same time as GravityScale...
+    -- That means we can just use Gravity to determine the GravityScale
     if EffectManager.settings.LowGravity then
-        MovementComp.GravityScale = 0.25
+        MovementComp.GravityScale = Player.Gravity * 0.25
     else
-        MovementComp.GravityScale = 1.0
+        MovementComp.GravityScale = Player.Gravity
     end
 end)
