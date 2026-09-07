@@ -78,6 +78,20 @@ local function SpawnYarnBall(Character)
 end
 
 
+local function SpawnConfetti(Character)
+    local TargetClassPath = "/Game/Blueprints/Challenges/Utils/BP_ChallengeConfetti.BP_ChallengeConfetti_C"
+    local ActorClass = StaticFindObject(TargetClassPath)
+    if not ActorClass or not ActorClass:IsValid() then return end
+    ShowText("You're doing great!")
+    local SpawnLocation = Character:K2_GetActorLocation()
+    SpawnLocation.Z = SpawnLocation.Z + 150.0
+    local SpawnRotation = {Pitch=0.0, Yaw=0.0, Roll=0.0}
+    SpawnedObj = Character:GetWorld():SpawnActor(ActorClass, SpawnLocation, SpawnRotation)
+    SpawnedObj['Start Celebration']()
+end
+
+
+
 local function LaunchRandomDirection(Character)
     local vel = {X = math.random(-500, 500), Y = math.random(-500, 500), Z = math.random(1000, 1500)}
     local off = {X = 0.0, Y = 0.0, Z = 0.0}
@@ -100,14 +114,14 @@ local function InvertColors(Character)
 end
 
 
-local function VetVisit(Character)
-    local LevelManager = FindFirstOf("LevelManager_C")
-    if LevelManager and LevelManager:IsValid() then
-        ExecuteInGameThread(function()
-            LevelManager['SwitchToLevel (By Name)'](LevelManager, "Hell")
-        end)
-    end
-end
+-- local function VetVisit(Character)
+--     local LevelManager = FindFirstOf("LevelManager_C")
+--     if LevelManager and LevelManager:IsValid() then
+--         ExecuteInGameThread(function()
+--             LevelManager['SwitchToLevel (By Name)'](LevelManager, "Hell")
+--         end)
+--     end
+-- end
 
 
 -- TEMP EFFECTS
@@ -171,7 +185,8 @@ function effects.ApplyRandomEffect(Player)
         ToggleDoubleJump,
         SpawnDrum,
         SpawnYarnBall,
-        InvertColors
+        InvertColors,
+        SpawnConfetti
     }
 
     if LoopCount % 2 == 0 then
@@ -185,12 +200,6 @@ function effects.ApplyRandomEffect(Player)
 
     if LoopCount % 4 == 0 then
         validFuncs[#validFuncs+1] = LaunchRandomDirection
-    end
-
-    if LoopCount % 5 == 0 then
-        if not Player.SleepController['Spawned Bed'] == nil then
-            validFuncs[#validFuncs+1] = VetVisit
-        end
     end
 
     local randomIndex = math.random(1, #validFuncs)
