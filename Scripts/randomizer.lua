@@ -61,7 +61,10 @@ end
 local rando = {}
 
 
--- Called during PlayerController:ClientRestart
+-- Called every time the player object is created and not at the vet
+-- Placements are only made the first time
+-- This results in objects being in the same location even if you go to the vet or return to the title screen
+-- The locations will be different each launch of the game
 function rando.Start()
     if next(Placements) == nil then
         MakePlacements()
