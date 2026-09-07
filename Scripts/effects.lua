@@ -1,5 +1,4 @@
 local UEHelpers = require("UEHelpers")
-local TimerData = require("timer")
 local UIManager = require("ui")
 
 local LoopCount = 0
@@ -19,7 +18,7 @@ local effects = {
 
 local function ShowText(RawText, IsTemp)
     if IsTemp then
-        RawText = RawText .. " (" .. tostring(TimerData.Seconds) .. "s)"
+        RawText = RawText .. " (" .. tostring(UIManager.GetTotalEffectTime()) .. "s)"
     end
     UIManager.SetText(RawText)
 end

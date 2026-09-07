@@ -1,5 +1,4 @@
 local UEHelpers = require("UEHelpers")
-local TimerData = require("timer")
 
 local Visibility_VISIBLE = 0
 local Visibility_COLLAPSED = 1
@@ -14,6 +13,7 @@ local defaultText = "Randomizer Mod v0.2.0 by Owen_Splat\nPress F5 to open the r
 
 local timerWidget = nil
 local timerControl = nil
+local timerStart = 20.0
 local timerRaw = 20.0
 
 local modMenuHUD = nil
@@ -21,8 +21,7 @@ local modMenuVisible = true
 
 local collectablesWidget = nil
 local effectsWidget = nil
-local timerWidget = nil
-local CurrentSensitivity = 1.0
+local effectsTimerWidget = nil
 
 -- Alignment presets
 local alignments = {
@@ -178,6 +177,42 @@ local function CreateModMenu()
     effectsBox:AddChildToHorizontalBox(effectsLabel)
     verticalBox:AddChildToVerticalBox(effectsBox)
 
+    -- effects timer
+    local timerBox = StaticConstructObject(StaticFindObject("/Script/UMG.HorizontalBox"), border, FName("TimerBox"))
+
+    local timerLabel = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), effectsBox, FName("TimerLabel"))
+    timerLabel.Font.Size = 16
+    timerLabel:SetText(FText("Effects Timer: 20 "))
+
+    effectsTimerWidget = StaticConstructObject(StaticFindObject("/Script/UMG.Slider"), timerBox, FName("TimerSlider"))
+    effectsTimerWidget:SetVisibility(0)
+    effectsTimerWidget:SetMinValue(10.0)
+    effectsTimerWidget:SetMaxValue(60.0)
+    effectsTimerWidget:SetValue(20.0)
+
+    local sliderSizeBox = StaticConstructObject(StaticFindObject("/Script/UMG.SizeBox"), timerBox, FName("SliderSizeBox"))
+    sliderSizeBox:SetWidthOverride(200.0)
+    sliderSizeBox:SetHeightOverride(24.0)
+    sliderSizeBox:AddChild(effectsTimerWidget)
+    verticalBox:AddChildToVerticalBox(timerBox)
+
+    timerBox:AddChildToHorizontalBox(timerLabel)
+    timerBox:AddChildToHorizontalBox(sliderSizeBox)
+    verticalBox:AddChildToVerticalBox(timerBox)
+
+    LoopAsync(100, function()
+        if not effectsTimerWidget or not effectsTimerWidget:IsValid() then
+            return true
+        end
+
+        local currentValue = effectsTimerWidget.Value
+        if currentValue ~= timerRaw then
+            timerStart = math.floor(currentValue)
+            timerLabel:SetText(FText("Effects Timer: " .. tostring(timerStart) .. " "))
+        end
+        return false
+    end)
+
     -- fluff
     local slot = canvas:AddChildToCanvas(border)
     slot:SetSize({X = 400, Y = 500})
@@ -224,7 +259,6 @@ end
 function funcs.Init()
     ExecuteInGameThread(function()
         CreateTextWidget()
-        timerRaw = TimerData.Seconds / 1.0
         CreateTimerWidget(tostring(timerRaw))
         CreateModMenu()
         RegisterKeyBind(Key.F5, ToggleModMenu)
@@ -284,7 +318,7 @@ end
 
 
 function funcs.ResetTimer()
-    timerRaw = TimerData.Seconds / 1.0
+    timerRaw = timerStart
 end
 
 
@@ -311,6 +345,11 @@ function funcs.Reset()
     funcs.ShowText()
     funcs.SetText(defaultText)
     HideModMenu()
+end
+
+
+function funcs.GetTotalEffectTime()
+    return math.tointeger(timerStart)
 end
 
 
