@@ -7,11 +7,13 @@ local SpawnedObj = nil
 local effects = {
     settings = {
         CameraLock = false,
+        ReversedCamera = false,
+        UpsideDown = false,
+        CameraRotate = false,
         ForcedJumps = false,
         Frozen = false,
         LowGravity = false,
-        ReversedCamera = false,
-        UpsideDown = false,
+        InfiniteJumps = false
     }
 }
 
@@ -142,6 +144,12 @@ local function UpsideDown(Character)
 end
 
 
+local function RotateCamera(Character)
+    ShowText("Rotating camera...", true)
+    effects.settings.CameraRotate = true
+end
+
+
 local function ConstantJump(Character)
     ShowText("Forced jumps", true)
     effects.settings.ForcedJumps = true
@@ -157,6 +165,12 @@ end
 local function Freeze(Character)
     ShowText("Frozen", true)
     effects.settings.Frozen = true
+end
+
+
+local function InfiniteJumps(Character)
+    ShowText("Infinite Jumps", true)
+    effects.settings.InfiniteJumps = true
 end
 
 
@@ -193,8 +207,10 @@ function effects.ApplyRandomEffect(Player)
         validFuncs[#validFuncs+1] = LockCamera
         validFuncs[#validFuncs+1] = ReverseCamera
         validFuncs[#validFuncs+1] = UpsideDown
+        validFuncs[#validFuncs+1] = RotateCamera
         validFuncs[#validFuncs+1] = ConstantJump
         validFuncs[#validFuncs+1] = Freeze
+        validFuncs[#validFuncs+1] = InfiniteJumps
     end
 
     if LoopCount % 4 == 0 then

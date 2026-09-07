@@ -3,6 +3,7 @@ local Randomizer = require("randomizer")
 local UIManager = require("ui")
 
 local IsAtVet = false
+local CameraRotDegrees = 0.0
 
 
 -- reset the mod UI when the player object is destroyed
@@ -79,12 +80,26 @@ RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player
         end
     end
 
+    if EffectManager.settings.InfiniteJumps then
+        Player:ResetJumpCount()
+    end
+
     -- This property is updated every frame so we don't need to manually set it back
     if EffectManager.settings.UpsideDown then
         local Cam = Player.Camera
         if Cam and Cam:IsValid() then
             Cam.RelativeRotation.Roll = 180.0
         end
+    end
+
+    if EffectManager.settings.RotateCamera then
+        local Cam = Player.Camera
+        if Cam and Cam:IsValid() then
+            CameraRotDegrees = CameraRotDegrees + ((360.0 * DeltaSeconds:get()) / UIManager.GetTotalEffectTime())
+            Cam.RelativeRotation.Roll = CameraRotDegrees
+        end
+    else
+        CameraRotDegrees = 0.0
     end
 
     -- From this point on are effects that edit movement properties
