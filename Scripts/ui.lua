@@ -22,6 +22,7 @@ local modMenuVisible = true
 local collectablesWidget = nil
 local effectsWidget = nil
 local effectsTimerWidget = nil
+local meowSpeedWidget = nil
 
 -- Alignment presets
 local alignments = {
@@ -213,6 +214,22 @@ local function CreateModMenu()
         return false
     end)
 
+    -- meow speed boost check
+    local meowBox = StaticConstructObject(StaticFindObject("/Script/UMG.HorizontalBox"), border, FName("MeowBox"))
+
+    meowSpeedWidget = StaticConstructObject(StaticFindObject("/Script/UMG.CheckBox"), meowBox, FName("MeowCheck"))
+    meowSpeedWidget:SetIsChecked(true)
+
+    local MeowLabel = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), meowBox, FName("MeowLabel"))
+    MeowLabel.Font.Size = 16
+    MeowLabel:SetText(FText(" Meow Gives Speed Boost"))
+
+    meowBox:AddChildToHorizontalBox(meowSpeedWidget)
+    meowBox:AddChildToHorizontalBox(MeowLabel)
+    local meowPaddingLabel = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), border, FName("MeowPaddingLabel"))
+    verticalBox:AddChildToVerticalBox(meowPaddingLabel)
+    verticalBox:AddChildToVerticalBox(meowBox)
+
     -- fluff
     local slot = canvas:AddChildToCanvas(border)
     slot:SetSize({X = 400, Y = 500})
@@ -325,10 +342,12 @@ end
 function funcs.GetSettings()
     if not collectablesWidget then return end
     if not effectsWidget then return end
+    if not meowSpeedWidget then return end
 
     return {
         ["Collectables"] = collectablesWidget:IsChecked(),
-        ["Effects"] = effectsWidget:IsChecked()
+        ["Effects"] = effectsWidget:IsChecked(),
+        ["Meow Speed Boost"] = meowSpeedWidget:IsChecked()
     }
 end
 

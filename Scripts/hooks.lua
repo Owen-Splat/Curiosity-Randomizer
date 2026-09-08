@@ -47,12 +47,26 @@ end)
 RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player_C:ReceiveTick", function(self, DeltaSeconds)
     if IsAtVet then return end
 
-    local settings = UIManager.GetSettings()
-    if not settings or not settings["Effects"] then return end
-
     local Player = FindFirstOf("CharBP_Cat_R_Player_C")
     if not Player or not Player:IsValid() then return end
 
+    local settings = UIManager.GetSettings()
+    if not settings then return end
+
+    -- custom speed boost on meow
+    if settings["Meow Speed Boost"] then
+        if Player.MeowAudio.IsPlaying() then
+            Player['Grounded Base Speed'] = 180.0 * 2.0
+            Player['Swim Base Speed'] = 140.0 * 2.0
+        else
+            Player['Grounded Base Speed'] = 180.0
+            Player['Swim Base Speed'] = 140.0
+        end
+    end
+
+    if not settings["Effects"] then return end
+
+    -- update timer / apply effect
     local timeLeft = UIManager.UpdateTimer(DeltaSeconds:get())
     if timeLeft == 0.0 then
         -- delay the next effect if a hand has hold of the player
