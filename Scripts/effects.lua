@@ -3,6 +3,7 @@ local UIManager = require("ui")
 
 local LoopCount = 0
 local SpawnedObj = nil
+local WasLastTemp = false
 
 local effects = {
     settings = {
@@ -13,7 +14,8 @@ local effects = {
         ForcedJumps = false,
         Frozen = false,
         LowGravity = false,
-        InfiniteJumps = false
+        InfiniteJumps = false,
+        IsInvisible = false
     }
 }
 
@@ -219,23 +221,37 @@ local function InfiniteJumps(Character)
 end
 
 
+local function GoInvisible(Character)
+    ShowText("Invisible", true)
+    Character:SetActorHiddenInGame(true)
+    effects.settings.IsInvisible = true
+end
+
+
 -- funcs for our tick hook to call
-local function Cleanup()
+local function Cleanup(Player)
     -- destroy any spawned objects
     if SpawnedObj and SpawnedObj:IsValid() then
         SpawnedObj:K2_DestroyActor()
     end
     SpawnedObj = nil
 
+    if effects.settings.IsInvisible then
+        Player:SetActorHiddenInGame(false)
+    end
+
     -- clear any temp effect at the next cycle
     for key, value in pairs(effects.settings) do
-        effects.settings[key] = false
+        if value == true then
+            effects.settings[key] = false
+            WasLastTemp = true
+        end
     end
 end
 
 
 function effects.ApplyRandomEffect(Player)
-    Cleanup()
+    Cleanup(Player)
     LoopCount = LoopCount + 1
 
     local validFuncs = {
@@ -249,7 +265,7 @@ function effects.ApplyRandomEffect(Player)
         SpawnHand
     }
 
-    if LoopCount % 2 == 0 then
+    if not WasLastTemp then
         validFuncs[#validFuncs+1] = ToggleLowGravity
         validFuncs[#validFuncs+1] = LockCamera
         validFuncs[#validFuncs+1] = ReverseCamera
@@ -258,7 +274,9 @@ function effects.ApplyRandomEffect(Player)
         validFuncs[#validFuncs+1] = ConstantJump
         validFuncs[#validFuncs+1] = Freeze
         validFuncs[#validFuncs+1] = InfiniteJumps
+        validFuncs[#validFuncs+1] = GoInvisible
     end
+    WasLastTemp = false
 
     if LoopCount % 4 == 0 then
         validFuncs[#validFuncs+1] = LaunchRandomDirection
