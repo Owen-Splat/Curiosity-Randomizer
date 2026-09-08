@@ -218,7 +218,6 @@ local function CreateModMenu()
     local meowBox = StaticConstructObject(StaticFindObject("/Script/UMG.HorizontalBox"), border, FName("MeowBox"))
 
     meowSpeedWidget = StaticConstructObject(StaticFindObject("/Script/UMG.CheckBox"), meowBox, FName("MeowCheck"))
-    meowSpeedWidget:SetIsChecked(true)
 
     local MeowLabel = StaticConstructObject(StaticFindObject("/Script/UMG.TextBlock"), meowBox, FName("MeowLabel"))
     MeowLabel.Font.Size = 16
