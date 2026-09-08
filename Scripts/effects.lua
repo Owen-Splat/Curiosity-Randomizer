@@ -92,6 +92,29 @@ local function SpawnConfetti(Character)
 end
 
 
+local function SpawnCannon(Character)
+    local CannonOrig = FindFirstOf("BP_CannonAttacker_C")
+    if not CannonOrig or not CannonOrig:IsValid() then return end
+    ShowText("And so I started blastin'...")
+
+    -- we want to spawn the cannon relative to the direction the player is currently facing
+    -- and also to have it pointing at the player
+    local PlayerLocation = Character:K2_GetActorLocation()
+    local ForwardVector = Character:GetActorForwardVector()
+    local SpawnDistance = 1250.0
+    local SpawnLocation = {
+        X = PlayerLocation.X + (ForwardVector.X * SpawnDistance),
+        Y = PlayerLocation.Y + (ForwardVector.Y * SpawnDistance),
+        Z = PlayerLocation.Z + 200.0
+    }
+    local SpawnRotation = Character:K2_GetActorRotation()
+
+    local World = CannonOrig:GetWorld()
+    local ActorClass = CannonOrig:GetClass()
+    SpawnedObj = World:SpawnActor(ActorClass, SpawnLocation, SpawnRotation)
+    SpawnedObj:ReceiveActorBeginOverlap(Character) -- trigger the attack
+end
+
 
 local function LaunchRandomDirection(Character)
     local vel = {X = math.random(-500, 500), Y = math.random(-500, 500), Z = math.random(1000, 1500)}
@@ -199,7 +222,8 @@ function effects.ApplyRandomEffect(Player)
         SpawnDrum,
         SpawnYarnBall,
         InvertColors,
-        SpawnConfetti
+        SpawnConfetti,
+        SpawnCannon
     }
 
     if LoopCount % 2 == 0 then
