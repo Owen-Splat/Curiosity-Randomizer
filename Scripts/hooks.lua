@@ -92,7 +92,7 @@ RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player
         end
     end
 
-    if EffectManager.settings.RotateCamera then
+    if EffectManager.settings.CameraRotate then
         local Cam = Player.Camera
         if Cam and Cam:IsValid() then
             CameraRotDegrees = CameraRotDegrees + ((360.0 * DeltaSeconds:get()) / UIManager.GetTotalEffectTime())
