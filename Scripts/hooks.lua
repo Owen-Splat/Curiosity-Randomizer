@@ -55,8 +55,11 @@ RegisterHook("/Game/AnimX/Cats/Realistic/CharBP_Cat_R_Player.CharBP_Cat_R_Player
 
     local timeLeft = UIManager.UpdateTimer(DeltaSeconds:get())
     if timeLeft == 0.0 then
-        EffectManager.ApplyRandomEffect(Player)
-        UIManager.ResetTimer()
+        -- delay the next effect if a hand has hold of the player
+        if Player.RootComponent:GetCollisionEnabled() == 3 then
+            EffectManager.ApplyRandomEffect(Player)
+            UIManager.ResetTimer()
+        end
         return
     end
 

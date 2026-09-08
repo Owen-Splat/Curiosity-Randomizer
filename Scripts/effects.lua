@@ -116,6 +116,28 @@ local function SpawnCannon(Character)
 end
 
 
+local function SpawnHand(Character)
+    local HandOrig = FindFirstOf("BP_Hand_Chaser_C")
+    if not HandOrig or not HandOrig:IsValid() then return end
+    ShowText("I know a guy who's pretty handy...")
+
+    local PlayerLocation = Character:K2_GetActorLocation()
+    local ForwardVector = Character:GetActorForwardVector()
+    local SpawnDistance = 1250.0
+    local SpawnLocation = {
+        X = PlayerLocation.X + (ForwardVector.X * SpawnDistance),
+        Y = PlayerLocation.Y + (ForwardVector.Y * SpawnDistance),
+        Z = PlayerLocation.Z + 200.0
+    }
+    local SpawnRotation = Character:K2_GetActorRotation()
+
+    local World = HandOrig:GetWorld()
+    local ActorClass = HandOrig:GetClass()
+    SpawnedObj = World:SpawnActor(ActorClass, SpawnLocation, SpawnRotation)
+    SpawnedObj.HandID = -1
+end
+
+
 local function LaunchRandomDirection(Character)
     local vel = {X = math.random(-500, 500), Y = math.random(-500, 500), Z = math.random(1000, 1500)}
     local off = {X = 0.0, Y = 0.0, Z = 0.0}
@@ -223,7 +245,8 @@ function effects.ApplyRandomEffect(Player)
         SpawnYarnBall,
         InvertColors,
         SpawnConfetti,
-        SpawnCannon
+        SpawnCannon,
+        SpawnHand
     }
 
     if LoopCount % 2 == 0 then
