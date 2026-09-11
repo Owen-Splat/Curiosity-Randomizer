@@ -10,7 +10,7 @@ local Visibility_SELFHITTESTINVISIBLE = 4
 
 local textWidget = nil
 local textControl = nil
-local defaultText = "Randomizer Mod v0.2.0 by Owen_Splat\nPress F5 to open the randomizer menu"
+local defaultText = "Randomizer Mod v0.3.0 by Owen_Splat\nPress F5 to toggle the randomizer menu"
 
 local timerWidget = nil
 local timerControl = nil
@@ -33,10 +33,8 @@ local function ToggleModMenu()
     if modMenuHUD:GetVisibility() == Visibility_HIDDEN then
         modMenuHUD:SetVisibility(Visibility_VISIBLE)
         timerWidget:SetVisibility(Visibility_HIDDEN)
-        funcs.SetText("Press F5 to close the mod menu")
     else
         modMenuHUD:SetVisibility(Visibility_HIDDEN)
-        textWidget:SetVisibility(Visibility_SELFHITTESTINVISIBLE)
         timerWidget:SetVisibility(Visibility_SELFHITTESTINVISIBLE)
         funcs.Reset()
     end

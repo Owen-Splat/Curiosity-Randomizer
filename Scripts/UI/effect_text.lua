@@ -26,6 +26,7 @@ function EffectText.new(text)
     textBlock:SetColorAndOpacity(FSlateColor(1,1,1,1))
     textBlock:SetShadowOffset({X = 1, Y = 1})
     textBlock:SetShadowColorAndOpacity(FLinearColor(0, 0, 0, 0.75))
+    textBlock:SetJustification(1)
 
     border:SetContent(textBlock)
 

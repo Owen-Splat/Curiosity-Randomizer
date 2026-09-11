@@ -95,6 +95,9 @@ function ModMenu.new()
     local page3Slot = ModMenu.MenuLayout:AddChildToVerticalBox(ModMenu.Page3)
     page3Slot:SetSize({SizeRule = 1, Value = 1.0})
 
+    -- padding before page buttons
+    ModMenu.MenuLayout:AddChildToVerticalBox(LabelWidget.new("PageToButtonPadding", ModMenu.MenuLayout, 28, ""))
+
     -- page buttons
     ModMenu.NextButton = ButtonWidget.new("PageNextButton", ModMenu.MenuLayout, NextPage)
     local nextText = LabelWidget.new("NextTextLabel", ModMenu.MenuLayout, 12, "->")
