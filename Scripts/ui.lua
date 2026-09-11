@@ -2,7 +2,7 @@ local UEHelpers = require("UEHelpers")
 
 local EffectText = require("UI/effect_text")
 local EffectTimer = require("UI/effect_timer")
-local MainMenu = require("UI/main_menu")
+local ModMenu = require("UI/mod_menu")
 
 local Visibility_VISIBLE = 0
 local Visibility_HIDDEN = 2
@@ -16,26 +16,26 @@ local timerWidget = nil
 local timerControl = nil
 local timerRaw = 20.0
 
-local modMenuMain = nil
+local modMenuHUD = nil
 
 local funcs = {}
 
 
 local function ToggleModMenu()
     -- only allow the menu on the title screen / dont run if character exists
-    local MainMenu = FindFirstOf("BP_MainMenuState_C")
-    if not MainMenu or not MainMenu:IsValid() then return end
+    local MainMenuState = FindFirstOf("BP_MainMenuState_C")
+    if not MainMenuState or not MainMenuState:IsValid() then return end
 
     if not textWidget or not textWidget:IsValid() then return end
     if not timerWidget or not timerWidget:IsValid() then return end
-    if not modMenuMain or not modMenuMain:IsValid() then return end
+    if not modMenuHUD or not modMenuHUD:IsValid() then return end
 
-    if modMenuMain:GetVisibility() == Visibility_HIDDEN then
-        modMenuMain:SetVisibility(Visibility_VISIBLE)
-        textWidget:SetVisibility(Visibility_HIDDEN)
+    if modMenuHUD:GetVisibility() == Visibility_HIDDEN then
+        modMenuHUD:SetVisibility(Visibility_VISIBLE)
         timerWidget:SetVisibility(Visibility_HIDDEN)
+        funcs.SetText("Press F5 to close the mod menu")
     else
-        modMenuMain:SetVisibility(Visibility_HIDDEN)
+        modMenuHUD:SetVisibility(Visibility_HIDDEN)
         textWidget:SetVisibility(Visibility_SELFHITTESTINVISIBLE)
         timerWidget:SetVisibility(Visibility_SELFHITTESTINVISIBLE)
         funcs.Reset()
@@ -47,7 +47,7 @@ function funcs.Init()
     ExecuteInGameThread(function()
         textWidget, textControl = EffectText.new(defaultText)
         timerWidget, timerControl = EffectTimer.new(tostring(timerRaw))
-        modMenuMain = MainMenu.new()
+        modMenuHUD = ModMenu.new()
         RegisterKeyBind(Key.F5, ToggleModMenu)
         ToggleModMenu()
     end)
@@ -105,12 +105,14 @@ end
 
 
 function funcs.ResetTimer()
-    timerRaw = MainMenu.effectsTimerWidget.Value
+    if not modMenuHUD or not modMenuHUD:IsValid() then return end
+    timerRaw = math.floor(ModMenu.GetSettings()["EffectTimer"])
 end
 
 
 function funcs.GetSettings()
-    return MainMenu.GetSettings()
+    if not modMenuHUD or not modMenuHUD:IsValid() then return end
+    return ModMenu.GetSettings()
 end
 
 
@@ -125,17 +127,17 @@ function funcs.Reset()
     end
     funcs.ShowText()
     funcs.SetText(defaultText)
-    if modMenuMain and modMenuMain:IsValid() then
-        modMenuMain:SetVisibility(Visibility_HIDDEN)
+    if modMenuHUD and modMenuHUD:IsValid() then
+        modMenuHUD:SetVisibility(Visibility_HIDDEN)
     end
 end
 
 
 function funcs.GetTotalEffectTime()
-    if not modMenuMain or not modMenuMain:IsValid() then
+    if not modMenuHUD or not modMenuHUD:IsValid() then
         return 20
     end
-    return MainMenu.effectsTimerWidget.Value
+    return ModMenu.GetSettings()["EffectTimer"]
 end
 
 
